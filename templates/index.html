@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Country Classifier</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f7f8fc;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 16px;
+    }
+
+    .card {
+      background: #ffffff;
+      border: 1.5px solid #e8eaf0;
+      border-radius: 16px;
+      padding: 40px;
+      width: 520px;
+      box-shadow: 0 4px 24px rgba(100, 90, 160, 0.08);
+    }
+
+    .header { text-align: center; margin-bottom: 28px; }
+
+    .globe {
+      width: 52px; height: 52px;
+      margin: 0 auto 14px;
+    }
+
+    h1 { font-size: 22px; font-weight: 600; color: #3b2f8f; margin-bottom: 6px; }
+    .subtitle { font-size: 13px; color: #8b87a8; }
+
+    hr { border: none; border-top: 1px solid #ede8f8; margin: 0 0 24px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 8px;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 5px; }
+
+    label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #5c4fb5;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .hint { font-size: 10px; color: #b0adcc; margin-top: -3px; }
+
+    input[type="number"] {
+      padding: 9px 12px;
+      border: 1.5px solid #ddd8f5;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #2d2260;
+      background: #fafafe;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="number"]:focus {
+      border-color: #6c5ce7;
+      background: #fff;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 20px;
+      padding: 13px;
+      background: #6c5ce7;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    button:hover  { background: #5a4bd1; }
+    button:active { transform: scale(0.98); }
+
+    .result {
+      margin-top: 24px;
+      padding: 20px;
+      border-radius: 10px;
+      background: #f3f0fd;
+      border: 1.5px solid #d4cef7;
+      text-align: center;
+      display: none;
+    }
+
+    .result.show { display: block; }
+
+    .result-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #8b87a8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+
+    .result-category {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .result-cluster { font-size: 13px; color: #8b87a8; }
+
+    .developed     { color: #00897b; }
+    .developing    { color: #6c5ce7; }
+    .underdeveloped { color: #e17055; }
+
+    .error { background: #fff0f0; border-color: #f5c2c2; }
+    .error .result-category { font-size: 15px; color: #c0392b; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <svg class="globe" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="26" cy="26" r="22" stroke="#6c5ce7" stroke-width="1.5" fill="#f3f0fd"/>
+        <ellipse cx="26" cy="26" rx="10" ry="22" stroke="#6c5ce7" stroke-width="1.5" fill="none"/>
+        <line x1="4" y1="26" x2="48" y2="26" stroke="#6c5ce7" stroke-width="1.5"/>
+        <line x1="8"  y1="16" x2="44" y2="16" stroke="#b8aef5" stroke-width="1"/>
+        <line x1="8"  y1="36" x2="44" y2="36" stroke="#b8aef5" stroke-width="1"/>
+      </svg>
+      <h1>Country Classifier</h1>
+      <p class="subtitle">Enter socio-economic indicators to classify a country</p>
+    </div>
+
+    <hr>
+
+    <div class="grid">
+      <div class="field">
+        <label>Child Mortality</label>
+        <p class="hint">per 1000 births</p>
+        <input type="number" id="child_mort" step="0.1" value="90.2">
+      </div>
+      <div class="field">
+        <label>Exports</label>
+        <p class="hint">% of GDP</p>
+        <input type="number" id="exports" step="0.1" value="10.0">
+      </div>
+      <div class="field">
+        <label>Health Spending</label>
+        <p class="hint">% of GDP</p>
+        <input type="number" id="health" step="0.01" value="7.58">
+      </div>
+      <div class="field">
+        <label>Imports</label>
+        <p class="hint">% of GDP</p>
+        <input type="number" id="imports" step="0.1" value="44.9">
+      </div>
+      <div class="field">
+        <label>Income</label>
+        <p class="hint">net per person (USD)</p>
+        <input type="number" id="income" step="1" value="1610">
+      </div>
+      <div class="field">
+        <label>Inflation</label>
+        <p class="hint">annual %</p>
+        <input type="number" id="inflation" step="0.01" value="9.44">
+      </div>
+      <div class="field">
+        <label>Life Expectancy</label>
+        <p class="hint">years</p>
+        <input type="number" id="life_expec" step="0.1" value="56.2">
+      </div>
+      <div class="field">
+        <label>Fertility Rate</label>
+        <p class="hint">children per woman</p>
+        <input type="number" id="total_fer" step="0.01" value="5.82">
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:14px">
+      <label>GDP per Capita</label>
+      <p class="hint">USD</p>
+      <input type="number" id="gdpp" step="1" value="553" style="width:100%">
+    </div>
+
+    <button onclick="predict()">Classify Country</button>
+
+    <div class="result" id="result">
+      <div class="result-label">Development Category</div>
+      <div class="result-category" id="category"></div>
+      <div class="result-cluster" id="cluster-info"></div>
+    </div>
+  </div>
+
+  <script>
+    async function predict() {
+      const body = {
+        child_mort: parseFloat(document.getElementById('child_mort').value),
+        exports:    parseFloat(document.getElementById('exports').value),
+        health:     parseFloat(document.getElementById('health').value),
+        imports:    parseFloat(document.getElementById('imports').value),
+        income:     parseFloat(document.getElementById('income').value),
+        inflation:  parseFloat(document.getElementById('inflation').value),
+        life_expec: parseFloat(document.getElementById('life_expec').value),
+        total_fer:  parseFloat(document.getElementById('total_fer').value),
+        gdpp:       parseFloat(document.getElementById('gdpp').value)
+      };
+
+      const resultBox  = document.getElementById('result');
+      const categoryEl = document.getElementById('category');
+      const clusterEl  = document.getElementById('cluster-info');
+
+      try {
+        const res  = await fetch('/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+
+        const colorMap = {
+          'Developed':      'developed',
+          'Developing':     'developing',
+          'Underdeveloped': 'underdeveloped'
+        };
+
+        resultBox.className  = 'result show';
+        categoryEl.className = 'result-category ' + (colorMap[data.category] || '');
+        categoryEl.textContent = data.category;
+        clusterEl.textContent  = 'Cluster ' + data.cluster;
+
+      } catch (err) {
+        resultBox.className    = 'result show error';
+        categoryEl.textContent = 'Prediction failed';
+        clusterEl.textContent  = 'Check that app.py is running';
+      }
+    }
+  </script>
+</body>
+</html>
